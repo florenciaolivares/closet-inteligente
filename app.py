@@ -40,7 +40,7 @@ if 'df' not in st.session_state:
 df = st.session_state.df
 closet = st.session_state.closet
 
-st.title("👗 Clóset Inteligente")
+st.title("Clóset Inteligente 👚✨")
 
 opcion = st.sidebar.selectbox("¿Qué quieres hacer?", 
                              ["Recomendar outfit", "Agregar prenda", "Cambiar estado", "Ver favoritos"])
