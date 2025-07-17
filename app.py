@@ -1,97 +1,133 @@
 # app.py
 import streamlit as st
 import pandas as pd
-from closet import Prenda, Closet
-from utils import guardar_outfit, outfit_a_str, obtener_temperatura_santiago
+from datetime import datetime
+from funciones_auxiliares import (
+    obtener_temperatura_santiago,
+    outfit_a_str,
+    guardar_outfit,
+    mostrar_outfits_favoritos
+)
+from clases import Prenda, Closet
 
-API_KEY = "1c1fb8b2336136f7f4c9620ffc1229ee"
-INVENTARIO_PATH = "inventario vacio.xlsx"
+# === CONFIGURACIÓN GENERAL ===
+INVENTARIO_PATH = "v2_Inventario_Seminario.xlsx"
+HISTORIAL_PATH = "historial_outfits.csv"
 
+# === INICIALIZACIÓN DEL INVENTARIO ===
 @st.cache_data
 def cargar_inventario(path):
     df = pd.read_excel(path)
-    prendas = [Prenda(row["nombre_prenda"], row["tipo"], row["color"], row["temporada"],
-                      row["estado"], row["ocasion"]) for _, row in df.iterrows()]
-    return df, Closet(prendas)
+    prendas_ar = [
+        Prenda(row["nombre_prenda"], row["tipo"], row["color"],
+               row["temporada"], row["estado"], row["ocasion"])
+        for _, row in df.iterrows()
+    ]
+    return df, Closet(prendas_ar)
 
-df, closet = cargar_inventario(INVENTARIO_PATH)
+if "df" not in st.session_state:
+    df_base, closet_base = cargar_inventario(INVENTARIO_PATH)
+    st.session_state.df = df_base.copy()
+    st.session_state.closet = closet_base
 
-st.title("👗 Clóset Inteligente")
+df = st.session_state.df
+closet = st.session_state.closet
 
-opcion = st.sidebar.selectbox("¿Qué quieres hacer?", ["Recomendar outfit", "Agregar prenda", "Cambiar estado", "Ver favoritos"])
+# === INTERFAZ ===
+st.set_page_config(page_title="Clóset Inteligente", layout="centered")
 
-if opcion == "Recomendar outfit":
+st.title("👚 Clóset Inteligente")
+
+opcion = st.sidebar.selectbox(
+    "¿Qué quieres hacer?",
+    ["Sugerir outfit", "Ver favoritos", "Agregar prenda", "Editar estado"]
+)
+
+# === SUGERIR OUTFIT ===
+if opcion == "Sugerir outfit":
+    st.header("👗 Sugerencia de Outfit")
+
     try:
-        temp = obtener_temperatura_santiago(API_KEY)
-        if temp <= 20:
+        api_key = "****1c1fb8b2336136f7f4c9620ffc1229ee"  # Tu API key
+        temperatura = obtener_temperatura_santiago(api_key)
+        st.success(f"Temperatura en Santiago: {temperatura:.1f} °C")
+
+        if temperatura <= 20.0:
             clima = "invierno"
-        elif temp <= 23:
+        elif temperatura <= 23.0:
             clima = "otoño"
-        elif temp <= 27:
+        elif temperatura <= 27.0:
             clima = "primavera"
         else:
             clima = "verano"
-        st.success(f"Temperatura actual en Santiago: {temp:.1f}°C → Clima: {clima}")
+
     except:
-        clima = st.selectbox("No se pudo obtener el clima. Selecciónalo manualmente:", ["otoño", "invierno", "primavera", "verano"])
+        st.warning("No se pudo obtener la temperatura automáticamente.")
+        clima = st.selectbox("Selecciona la temporada:", ["otoño", "invierno", "primavera", "verano"])
 
-    ocasion = st.selectbox("¿Ocasión del día?", ["informal", "formal"])
+    ocasion = st.radio("¿Cuál es la ocasión?", ["formal", "informal"])
 
-    if st.button("Sugerir outfit"):
+    if st.button("🎲 Generar outfit"):
         outfit = closet.sugerir_outfit(clima, ocasion)
+
         if outfit:
-            partes = []
-            for parte in outfit:
-                prenda = outfit[parte]
-                partes.append(f"**{parte}**: {prenda.nombre} ({prenda.color})")
-            st.markdown("### Te sugerimos usar:\n" + "\n".join(partes))
-            gusto = st.radio("¿Te gustó esta sugerencia?", ["Sí", "No"]) == "Sí"
-            guardar_outfit(outfit_a_str(outfit, clima, ocasion), gusto)
+            outfit_str = outfit_a_str(outfit, clima, ocasion)
+            st.markdown("### Recomendación:")
+            for parte in ["superior", "inferior", "capa"]:
+                if parte in outfit:
+                    prenda = outfit[parte]
+                    st.write(f"**{parte.capitalize()}:** {prenda.nombre} ({prenda.color})")
+
+            gusto = st.radio("¿Te gustó la sugerencia?", ["Sí", "No"], horizontal=True)
+            if gusto:
+                guardar_outfit(outfit_str, gusto.lower() == "sí")
         else:
-            st.warning("No hay prendas suficientes disponibles para sugerir un outfit.")
+            st.error("No hay suficientes prendas disponibles para sugerir un outfit.")
 
+# === FAVORITOS ===
+elif opcion == "Ver favoritos":
+    st.header("💖 Tus outfits favoritos")
+    if not mostrar_outfits_favoritos(HISTORIAL_PATH):
+        st.info("Aún no tienes outfits favoritos.")
+
+# === AGREGAR PRENDA ===
 elif opcion == "Agregar prenda":
-    st.subheader("Agregar nueva prenda")
-    nombre = st.text_input("Nombre")
-    tipo = st.selectbox("Tipo", ["polera", "pantalonlargo", "short", "falda", "vestido", "abrigo"])
-    color = st.text_input("Color")
-    temporada = st.selectbox("Temporada", ["otoño", "invierno", "primavera", "verano"])
-    estado = st.selectbox("Estado", ["limpio", "sucio"])
-    ocasion = st.selectbox("Ocasión", ["formal", "informal"])
+    st.header("➕ Agregar nueva prenda")
 
-    if st.button("Agregar prenda"):
-        nueva_fila = pd.DataFrame([{
-            "nombre_prenda": nombre,
-            "tipo": tipo,
-            "color": color,
-            "temporada": temporada,
-            "estado": estado,
-            "ocasion": ocasion
-        }])
-        df = pd.concat([df, nueva_fila], ignore_index=True)
-        df.to_excel(INVENTARIO_PATH, index=False)
+    with st.form("form_nueva_prenda"):
+        nombre = st.text_input("Nombre de la prenda")
+        tipo = st.selectbox("Tipo", ["polera", "pantalonlargo", "short", "falda", "vestido", "abrigo"])
+        color = st.text_input("Color")
+        temporada = st.selectbox("Temporada", ["otoño", "invierno", "primavera", "verano"])
+        estado = st.radio("Estado", ["limpio", "sucio"])
+        ocasion = st.radio("Ocasión", ["formal", "informal"])
+        submitted = st.form_submit_button("Agregar")
+
+    if submitted:
+        nueva = Prenda(nombre, tipo, color, temporada, estado, ocasion)
+        st.session_state.df.loc[len(df)] = [nombre, tipo, color, temporada, estado, ocasion]
+        st.session_state.closet.prendas.append(nueva)
         st.success("Prenda agregada correctamente.")
 
-elif opcion == "Cambiar estado":
-    st.subheader("Cambiar estado de una prenda")
-    prenda = st.selectbox("Selecciona prenda", df["nombre_prenda"].tolist())
-    estado_actual = df[df["nombre_prenda"] == prenda]["estado"].values[0]
-    st.text(f"Estado actual: {estado_actual}")
-    nuevo_estado = st.radio("Nuevo estado", ["limpio", "sucio"])
+# === CAMBIAR ESTADO ===
+elif opcion == "Editar estado":
+    st.header("♻️ Cambiar estado de una prenda")
 
-    if st.button("Actualizar estado"):
-        df.loc[df["nombre_prenda"] == prenda, "estado"] = nuevo_estado
-        df.to_excel(INVENTARIO_PATH, index=False)
-        st.success("Estado actualizado correctamente.")
-
-elif opcion == "Ver favoritos":
-    import csv
-    st.subheader("Outfits favoritos")
-    try:
-        with open("historial_outfits.csv", "r", encoding="utf-8") as f:
-            reader = csv.reader(f)
-            for fila in reader:
-                if len(fila) == 3 and fila[2].strip().lower() == "true":
-                    st.write(f"[{fila[0]}] {fila[1]}")
-    except FileNotFoundError:
-        st.warning("Aún no hay historial registrado.")
+    nombre_objetivo = st.text_input("Nombre de la prenda a editar").strip()
+    if st.button("Buscar"):
+        indices = df.index[df["nombre_prenda"].str.lower() == nombre_objetivo.lower()].tolist()
+        if not indices:
+            st.error("No se encontró una prenda con ese nombre.")
+        else:
+            for i in indices:
+                estado_actual = df.at[i, "estado"]
+                nuevo_estado = st.radio(
+                    f"La prenda '{df.at[i, 'nombre_prenda']}' está actualmente: {estado_actual}",
+                    ["limpio", "sucio"],
+                    key=f"estado_{i}"
+                )
+                df.at[i, "estado"] = nuevo_estado
+                for prenda in closet.prendas:
+                    if prenda.nombre.lower() == nombre_objetivo.lower():
+                        prenda.estado = nuevo_estado
+                st.success("Estado actualizado correctamente.")
