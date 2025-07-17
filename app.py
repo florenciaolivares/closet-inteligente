@@ -2,13 +2,8 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from funciones_auxiliares import (
-    obtener_temperatura_santiago,
-    outfit_a_str,
-    guardar_outfit,
-    mostrar_outfits_favoritos
-)
-from clases import Prenda, Closet
+from closet import Prenda, Closet
+from utils import guardar_outfit, outfit_a_str, obtener_temperatura_santiago
 
 # === CONFIGURACIÓN GENERAL ===
 INVENTARIO_PATH = "v2_Inventario_Seminario.xlsx"
