@@ -43,7 +43,7 @@ if opcion == "Sugerir outfit":
     st.header("👗 Sugerencia de Outfit")
 
     try:
-        api_key = "****1c1fb8b2336136f7f4c9620ffc1229ee"  # Tu API key
+        api_key = "1c1fb8b2336136f7f4c9620ffc1229ee"
         temperatura = obtener_temperatura_santiago(api_key)
         st.success(f"Temperatura en Santiago: {temperatura:.1f} °C")
 
