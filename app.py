@@ -40,7 +40,7 @@ if 'df' not in st.session_state:
 df = st.session_state.df
 closet = st.session_state.closet
 
-st.title("👗 Clóset Inteligente Personalizado")
+st.title("👗 Clóset Inteligente")
 
 opcion = st.sidebar.selectbox("¿Qué quieres hacer?", 
                              ["Recomendar outfit", "Agregar prenda", "Cambiar estado", "Ver favoritos"])
@@ -56,7 +56,7 @@ if opcion == "Recomendar outfit":
             clima = "primavera"
         else:
             clima = "verano"
-        st.success(f"Temperatura actual en Santiago: {temp:.1f}°C → Clima: {clima}")
+        st.success(f"Temperatura actual en Santiago: {temp:.1f}°C  → Clima: {clima}")
     except:
         clima = st.selectbox("No se pudo obtener el clima. Selecciónalo manualmente:", 
                             ["otoño", "invierno", "primavera", "verano"])
