@@ -40,7 +40,7 @@ if 'df' not in st.session_state:
 df = st.session_state.df
 closet = st.session_state.closet
 
-st.title("👗 Clóset Inteligente")
+st.title("👗 Clóset Inteligente Personalizado")
 
 opcion = st.sidebar.selectbox("¿Qué quieres hacer?", 
                              ["Recomendar outfit", "Agregar prenda", "Cambiar estado", "Ver favoritos"])
@@ -63,21 +63,46 @@ if opcion == "Recomendar outfit":
 
     ocasion = st.selectbox("¿Ocasión del día?", ["informal", "formal"])
 
+    # Variables para controlar el estado del feedback
+    if 'outfit_generado' not in st.session_state:
+        st.session_state.outfit_generado = None
+    if 'feedback_dado' not in st.session_state:
+        st.session_state.feedback_dado = False
+
     if st.button("Sugerir outfit"):
         outfit = closet.sugerir_outfit(clima, ocasion)
         if outfit:
-            partes = []
-            for parte in outfit:
-                prenda = outfit[parte]
-                partes.append(f"**{parte}**: {prenda.nombre} ({prenda.color})")
-            st.markdown("### Te sugerimos usar:\n" + "\n".join(partes))
-            gusto = st.radio("¿Te gustó esta sugerencia?", ["Sí", "No"]) == "Sí"
-            guardar_outfit(outfit_a_str(outfit, clima, ocasion), gusto)
+            st.session_state.outfit_generado = outfit
+            st.session_state.feedback_dado = False
         else:
             st.warning("No hay prendas suficientes disponibles para sugerir un outfit.")
+            st.session_state.outfit_generado = None
+
+    if st.session_state.outfit_generado:
+        outfit = st.session_state.outfit_generado
+        partes = []
+        for parte in outfit:
+            prenda = outfit[parte]
+            partes.append(f"**{parte}**: {prenda.nombre} ({prenda.color})")
+        st.markdown("### Te sugerimos usar:\n" + "\n".join(partes))
+        
+        if not st.session_state.feedback_dado:
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("Sí, me gusta 👍"):
+                    guardar_outfit(outfit_a_str(outfit, clima, ocasion), True)
+                    st.session_state.feedback_dado = True
+                    st.success("¡Gracias! Outfit guardado como favorito.")
+            with col2:
+                if st.button("No, no me gusta 👎"):
+                    guardar_outfit(outfit_a_str(outfit, clima, ocasion), False)
+                    st.session_state.feedback_dado = True
+                    st.info("¡Gracias por tu feedback! Buscaremos mejores opciones.")
+        else:
+            st.info("Ya has dado tu feedback sobre este outfit.")
 
 elif opcion == "Agregar prenda":
-    st.subheader("Agregar nueva prenda a tu clóset")
+    st.subheader("Agregar nueva prenda a TU clóset")
     nombre = st.text_input("Nombre")
     tipo = st.selectbox("Tipo", ["polera", "pantalonlargo", "short", "falda", "vestido", "abrigo"])
     color = st.text_input("Color")
@@ -114,7 +139,7 @@ elif opcion == "Agregar prenda":
         st.success("¡Prenda agregada a TU clóset personal!")
 
 elif opcion == "Cambiar estado":
-    st.subheader("Cambiar estado de una prenda en tu clóset")
+    st.subheader("Cambiar estado de una prenda en TU clóset")
     prenda = st.selectbox("Selecciona prenda", df["nombre_prenda"].tolist())
     estado_actual = df[df["nombre_prenda"] == prenda]["estado"].values[0]
     st.text(f"Estado actual: {estado_actual}")
