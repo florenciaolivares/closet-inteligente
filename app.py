@@ -5,7 +5,7 @@ from closet import Prenda, Closet
 from utils import guardar_outfit, outfit_a_str, obtener_temperatura_santiago
 
 API_KEY = "1c1fb8b2336136f7f4c9620ffc1229ee"
-INVENTARIO_PATH = "inventario vacio.xlsx"
+INVENTARIO_PATH = "v2_Inventario Seminario.xlsx"
 
 @st.cache_data
 def cargar_inventario(path):
