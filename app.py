@@ -61,7 +61,7 @@ if opcion == "Recomendar outfit":
         clima = st.selectbox("No se pudo obtener el clima. Selecciónalo manualmente:", 
                             ["otoño", "invierno", "primavera", "verano"])
 
-    ocasion = st.selectbox("¿Ocasión del día?", ["informal", "formal"])
+    ocasion = st.selectbox("¿Ocasión del día?", ["Informal", "Formal"])
 
     # Variables para controlar el estado del feedback
     if 'outfit_generado' not in st.session_state:
@@ -102,7 +102,7 @@ if opcion == "Recomendar outfit":
             st.info("Ya has dado tu feedback sobre este outfit.")
 
 elif opcion == "Agregar prenda":
-    st.subheader("Agregar nueva prenda a TU clóset")
+    st.subheader("Agregar nueva prenda a tu clóset")
     nombre = st.text_input("Nombre")
     tipo = st.selectbox("Tipo", ["polera", "pantalonlargo", "short", "falda", "vestido", "abrigo"])
     color = st.text_input("Color")
@@ -136,10 +136,10 @@ elif opcion == "Agregar prenda":
         ]
         st.session_state.closet = Closet(prendas)
         
-        st.success("¡Prenda agregada a TU clóset personal!")
+        st.success("¡Prenda agregada a tu clóset personal!")
 
 elif opcion == "Cambiar estado":
-    st.subheader("Cambiar estado de una prenda en TU clóset")
+    st.subheader("Cambiar estado de una prenda en tu clóset")
     prenda = st.selectbox("Selecciona prenda", df["nombre_prenda"].tolist())
     estado_actual = df[df["nombre_prenda"] == prenda]["estado"].values[0]
     st.text(f"Estado actual: {estado_actual}")
@@ -162,7 +162,7 @@ elif opcion == "Cambiar estado":
         ]
         st.session_state.closet = Closet(prendas)
         
-        st.success("¡Estado actualizado en TU clóset!")
+        st.success("¡Estado actualizado en tu clóset!")
 
 elif opcion == "Ver favoritos":
     import csv
