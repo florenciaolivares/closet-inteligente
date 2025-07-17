@@ -40,7 +40,7 @@ if 'df' not in st.session_state:
 df = st.session_state.df
 closet = st.session_state.closet
 
-st.title("👗 Clóset Inteligente Personalizado")
+st.title("👗 Clóset Inteligente")
 
 opcion = st.sidebar.selectbox("¿Qué quieres hacer?", 
                              ["Recomendar outfit", "Agregar prenda", "Cambiar estado", "Ver favoritos"])
@@ -77,7 +77,7 @@ if opcion == "Recomendar outfit":
             st.warning("No hay prendas suficientes disponibles para sugerir un outfit.")
 
 elif opcion == "Agregar prenda":
-    st.subheader("Agregar nueva prenda a TU clóset")
+    st.subheader("Agregar nueva prenda a tu clóset")
     nombre = st.text_input("Nombre")
     tipo = st.selectbox("Tipo", ["polera", "pantalonlargo", "short", "falda", "vestido", "abrigo"])
     color = st.text_input("Color")
@@ -114,7 +114,7 @@ elif opcion == "Agregar prenda":
         st.success("¡Prenda agregada a TU clóset personal!")
 
 elif opcion == "Cambiar estado":
-    st.subheader("Cambiar estado de una prenda en TU clóset")
+    st.subheader("Cambiar estado de una prenda en tu clóset")
     prenda = st.selectbox("Selecciona prenda", df["nombre_prenda"].tolist())
     estado_actual = df[df["nombre_prenda"] == prenda]["estado"].values[0]
     st.text(f"Estado actual: {estado_actual}")
