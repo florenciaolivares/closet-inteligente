@@ -6,7 +6,7 @@ from closet import Prenda, Closet
 from utils import guardar_outfit, outfit_a_str, obtener_temperatura_santiago
 
 # === CONFIGURACIÓN GENERAL ===
-INVENTARIO_PATH = "v2_Inventario_Seminario.xlsx"
+INVENTARIO_PATH = "v2_Inventario Seminario.xlsx"
 HISTORIAL_PATH = "historial_outfits.csv"
 
 # === INICIALIZACIÓN DEL INVENTARIO ===
